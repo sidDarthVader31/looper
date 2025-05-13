@@ -16,6 +16,10 @@
       {
         "command": "looper.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "looper.monitor",
+        "title"  : "start monitoring"
       }
     ]
   },
