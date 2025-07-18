@@ -1,0 +1,94 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="800" height="500" fill="#1e1e1e" />
+  
+  <!-- Title -->
+  <text x="400" y="30" font-family="Arial" font-size="20" fill="#ffffff" text-anchor="middle">Node.js Event Loop Visualization</text>
+  
+  <!-- Event Loop Circle -->
+  <circle cx="400" cy="250" r="180" fill="none" stroke="#444444" stroke-width="2" />
+  <circle cx="400" cy="250" r="175" fill="none" stroke="#666666" stroke-width="1" stroke-dasharray="5,5" />
+  
+  <!-- Event Loop Phases -->
+  <path d="M 400 75 A 175 175 0 0 1 575 250" fill="none" stroke="#4a9c5d" stroke-width="25" opacity="0.6" />
+  <path d="M 575 250 A 175 175 0 0 1 400 425" fill="none" stroke="#5d4a9c" stroke-width="25" opacity="0.6" />
+  <path d="M 400 425 A 175 175 0 0 1 225 250" fill="none" stroke="#9c4a4a" stroke-width="25" opacity="0.6" />
+  <path d="M 225 250 A 175 175 0 0 1 400 75" fill="none" stroke="#4a9ca6" stroke-width="25" opacity="0.6" />
+  
+  <!-- Phase Labels -->
+  <text x="400" y="100" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Timers</text>
+  <text x="550" y="250" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">I/O Callbacks</text>
+  <text x="400" y="400" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Poll</text>
+  <text x="250" y="250" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Check</text>
+  
+  <!-- Active Phase Indicator (Timers) -->
+  <path d="M 400 75 A 175 175 0 0 1 575 250" fill="none" stroke="#4a9c5d" stroke-width="30" opacity="0.9">
+    <animate attributeName="stroke-width" values="25;35;25" dur="2s" repeatCount="indefinite" />
+  </path>
+  
+  <!-- Call Stack -->
+  <rect x="50" y="150" width="120" height="200" fill="#2d2d2d" stroke="#666666" stroke-width="1" />
+  <text x="110" y="140" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Call Stack</text>
+  
+  <!-- Stack Frames -->
+  <rect x="55" y="310" width="110" height="30" fill="#bb4545" rx="3" />
+  <text x="110" y="330" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">main()</text>
+  
+  <rect x="55" y="275" width="110" height="30" fill="#bb4545" rx="3" />
+  <text x="110" y="295" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">setTimeout callback</text>
+  
+  <rect x="55" y="240" width="110" height="30" fill="#bb4545" rx="3">
+    <animate attributeName="y" values="190;240" dur="1s" begin="0s" fill="freeze" />
+    <animate attributeName="opacity" values="0;1" dur="0.5s" begin="0s" fill="freeze" />
+  </rect>
+  <text x="110" y="260" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">readFile callback</text>
+  
+  <!-- Callback Queue -->
+  <rect x="50" y="400" width="350" height="60" fill="#2d2d2d" stroke="#666666" stroke-width="1" />
+  <text x="225" y="390" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Callback Queue</text>
+  
+  <!-- Callback Items -->
+  <rect x="60" y="410" width="100" height="40" fill="#457abb" rx="3" />
+  <text x="110" y="435" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">HTTP request</text>
+  
+  <rect x="175" y="410" width="100" height="40" fill="#457abb" rx="3" />
+  <text x="225" y="435" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Timer (500ms)</text>
+  
+  <rect x="290" y="410" width="100" height="40" fill="#457abb" rx="3">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
+  </rect>
+  <text x="340" y="435" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Processing...</text>
+  
+  <!-- Microtask Queue -->
+  <rect x="450" y="400" width="300" height="60" fill="#2d2d2d" stroke="#666666" stroke-width="1" />
+  <text x="600" y="390" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Microtask Queue</text>
+  
+  <!-- Microtask Items -->
+  <rect x="460" y="410" width="120" height="40" fill="#45bb70" rx="3" />
+  <text x="520" y="435" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Promise.resolve</text>
+  
+  <rect x="590" y="410" width="150" height="40" fill="#45bb70" rx="3" />
+  <text x="665" y="435" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">process.nextTick</text>
+  
+  <!-- Code being executed -->
+  <rect x="600" y="100" width="180" height="120" fill="#2d2d2d" stroke="#666666" stroke-width="1" />
+  <text x="690" y="90" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Current Operation</text>
+  
+  <text x="610" y="120" font-family="Courier New" font-size="12" fill="#45bb70">fs.readFile('file.txt',</text>
+  <text x="610" y="140" font-family="Courier New" font-size="12" fill="#45bb70">  (err, data) => {</text>
+  <text x="610" y="160" font-family="Courier New" font-size="12" fill="#ffffff">    console.log(data);</text>
+  <text x="610" y="180" font-family="Courier New" font-size="12" fill="#45bb70">  }</text>
+  <text x="610" y="200" font-family="Courier New" font-size="12" fill="#45bb70">);</text>
+  
+  <!-- Stats and Metrics -->
+  <rect x="50" y="50" width="200" height="80" fill="#2d2d2d" stroke="#666666" stroke-width="1" />
+  <text x="60" y="70" font-family="Arial" font-size="12" fill="#ffffff">Event Loop Tick: 42</text>
+  <text x="60" y="90" font-family="Arial" font-size="12" fill="#ffffff">Pending Callbacks: 3</text>
+  <text x="60" y="110" font-family="Arial" font-size="12" fill="#ffffff">Current Phase: Timers</text>
+  
+  <!-- Moving Animation for Event Flow -->
+  <circle cx="520" cy="250" r="6" fill="#ffffff">
+    <animate attributeName="cx" values="400;520;575;520;400;280;225;280;400" dur="5s" repeatCount="indefinite" />
+    <animate attributeName="cy" values="250;180;250;320;425;320;250;180;250" dur="5s" repeatCount="indefinite" />
+  </circle>
+</svg>
