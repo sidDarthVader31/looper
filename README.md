@@ -1,71 +1,86 @@
-# looper README
+# Looper
 
-This is the README for your extension "looper". After writing up a brief description, we recommend including the following sections.
+A VS Code extension that visualizes the Node.js call stack, microtask queue,
+and macrotask queue **live**, using your real function names — without
+modifying, wrapping, or adding any dependency to your codebase.
 
-## Features
+## How it works
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Two independent data sources feed the visualization:
 
-For example if there is an image subfolder under your extension project workspace:
+- **Call stack** (what's executing right now) comes from the V8 inspector's
+  `Profiler` domain over the Chrome DevTools Protocol (CDP) — a native
+  sampling profiler, the same mechanism `0x` and Chrome DevTools use for
+  flame graphs.
+- **Microtask / macrotask queues** (what's pending) come from Node's built-in
+  `async_hooks` module. On every `init` event we capture the creation-time
+  stack trace and walk it to find the nearest *user-code* frame — this is
+  how you see `checkRedis` in the queue instead of a random `PROMISE #47`.
 
-\!\[feature X\]\(images/feature-x.png\)
+Both are injected into your process without touching your source files:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- **Launch mode**: the extension spawns your app with
+  `NODE_OPTIONS="--require <agent> --inspect=<port>"`. The `--require` script
+  lives inside the extension's own install directory — nothing is added to
+  your `node_modules` or `package.json`.
+- **Attach mode**: for an already-running process started with `--inspect`,
+  the agent's source is injected via CDP's `Runtime.evaluate` — the same
+  trick browser extensions use to inject a script into a live page. Only
+  activity *after* the attach point will be visible, since anything already
+  in flight was created before the hook existed.
 
-## Requirements
+Data flows: `agent (async_hooks + stack capture)` → plain TCP socket →
+`extension host` → `webview` (call stack / microtask / macrotask columns +
+a scrubbable timeline for replay).
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Project layout
 
-## Extension Settings
+See the file tree at the top of this document / your repo root.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Setup
 
-For example:
+```bash
+npm install
+npm run compile
+```
 
-This extension contributes the following settings:
+Then press `F5` in VS Code (uses `.vscode/launch.json`) to open an
+Extension Development Host with the extension loaded.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Usage
 
-## Known Issues
+- `Cmd/Ctrl+Shift+P` → **Event Loop Visualizer: Launch & Visualize** →
+  enter the command that starts your app (e.g. `node dist/server.js`).
+- Or **Event Loop Visualizer: Attach to Running Process** → enter the
+  inspector port (default `9229`) of an app already running with
+  `--inspect`.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+A panel opens beside your editor showing three live columns (call stack,
+microtask queue, macrotask queue) plus a timeline at the bottom you can
+scrub to replay past activity.
 
-## Release Notes
+## Known limitations (by design, v0.1)
 
-Users appreciate release notes as you update your extension.
+- **Anonymous inline callbacks** (`app.post('/x', async (req,res) => {...})`
+  with no variable/property name) show as `<anonymous>` — V8 can't infer a
+  name it was never given. Named handlers work fine.
+- **libuv's internal phases** (timers / pending callbacks / poll / check /
+  close) are not exposed by any public Node API. This tool visualizes the
+  call stack + micro/macrotask queue mental model, not literal libuv phase
+  transitions.
+- **TypeScript/bundled source maps** aren't wired in yet — the CDP profiler
+  reports positions in the compiled JS. The inspector protocol supports
+  source maps natively; this is the next planned improvement.
+- **Worker threads / cluster / child_process** each run their own event
+  loop and would need their own agent connection — not yet multiplexed in
+  the UI.
+- **`async_hooks` overhead**: expect a measurable slowdown on very
+  async-heavy workloads while visualization is active. Treat this as a
+  debug-time tool, not something left on in production.
 
-### 1.0.0
+## Roadmap
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+1. Source-map support for TypeScript/bundled apps.
+2. Worker thread / cluster process picker in the panel.
+3. Persist replay sessions to disk for later loading.
+4. Blackbox/allowlist configuration for which `node_modules` frames to hide.

@@ -1,56 +1,40 @@
-const esbuild = require("esbuild");
+const esbuild = require('esbuild');
+const fs = require('fs');
 
-const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
 
-/**
- * @type {import('esbuild').Plugin}
- */
-const esbuildProblemMatcherPlugin = {
-	name: 'esbuild-problem-matcher',
-
-	setup(build) {
-		build.onStart(() => {
-			console.log('[watch] build started');
-		});
-		build.onEnd((result) => {
-			result.errors.forEach(({ text, location }) => {
-				console.error(`✘ [ERROR] ${text}`);
-				console.error(`    ${location.file}:${location.line}:${location.column}:`);
-			});
-			console.log('[watch] build finished');
-		});
-	},
+const buildOptions = {
+  entryPoints: ['src/extension.ts'],
+  bundle: true,
+  outfile: 'dist/extension.js',
+  external: ['vscode'],
+  platform: 'node',
+  target: 'node18',
+  sourcemap: true,
+  format: 'cjs',
 };
 
-async function main() {
-	const ctx = await esbuild.context({
-		entryPoints: [
-			'src/extension.ts'
-		],
-		bundle: true,
-		format: 'cjs',
-		minify: production,
-		sourcemap: !production,
-		sourcesContent: false,
-		platform: 'node',
-		outfile: 'dist/extension.js',
-		external: ['vscode'],
-		logLevel: 'silent',
-		plugins: [
-			/* add to the end of plugins array */
-			esbuildProblemMatcherPlugin,
-		],
-	});
-	if (watch) {
-		await ctx.watch();
-	} else {
-		await ctx.rebuild();
-		await ctx.dispose();
-	}
+function copyStaticFiles() {
+  fs.mkdirSync('dist/media', { recursive: true });
+  fs.mkdirSync('dist/agent', { recursive: true });
+  fs.copyFileSync('src/webview/media/main.js', 'dist/media/main.js');
+  fs.copyFileSync('src/webview/media/style.css', 'dist/media/style.css');
+  fs.copyFileSync('agent/instrument.js', 'dist/agent/instrument.js');
 }
 
-main().catch(e => {
-	console.error(e);
-	process.exit(1);
+async function run() {
+  copyStaticFiles();
+  if (watch) {
+    const ctx = await esbuild.context(buildOptions);
+    await ctx.watch();
+    console.log('esbuild watching for changes...');
+  } else {
+    await esbuild.build(buildOptions);
+    console.log('esbuild build complete.');
+  }
+}
+
+run().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });
