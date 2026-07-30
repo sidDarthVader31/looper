@@ -4,6 +4,7 @@
   "description": "Visualize the Node.js call stack, microtask queue, and macrotask queue live from inside VS Code.",
   "version": "0.1.0",
   "license": "MIT",
+  "publisher": "SiddharthBisht31",
   "icon": "assets/icon.png",
   "author": {
     "name": "Siddharth Bisht",
