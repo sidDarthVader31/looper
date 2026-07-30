@@ -8,3 +8,7 @@ esbuild.js
 *.map
 assets/demo.mov
 assets/logo.png
+assets/readme-live.png
+assets/readme-replay.png
+assets/screenshot-queues.png
+assets/screenshot-timeline.png

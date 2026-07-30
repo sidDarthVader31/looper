@@ -4,24 +4,15 @@ A VS Code extension that visualizes the Node.js **call stack**, **microtask queu
 and **macrotask queue** live — using your real function names — without modifying,
 wrapping, or adding any dependency to your app.
 
-![Panel layout with Live / Stop / Clear and playback controls](assets/screenshot-queues.png)
+![Looper live session — call stack, microtask, and macrotask lanes](https://raw.githubusercontent.com/sidDarthVader31/looper/main/assets/readme-live.png)
 
-![Call stack, microtask, and macrotask lanes during a live sample-app run](assets/screenshot-timeline.png)
+![Looper replay — running callback on the stack with queued work](https://raw.githubusercontent.com/sidDarthVader31/looper/main/assets/readme-replay.png)
 
 ### Working demo
 
-![Working demo](assets/demo.gif)
+![Working demo](https://raw.githubusercontent.com/sidDarthVader31/looper/main/assets/demo.gif)
 
 ---
-
-## Setup
-
-```bash
-npm install
-npm run compile
-```
-
-Press `F5` in VS Code (Extension Development Host) to load the extension.
 
 ## Usage
 
@@ -142,7 +133,7 @@ src/
   extension.ts             # commands, session lifecycle
   stateStore.ts            # captured event buffer
   shared/types.ts
-assets/                    # screenshots + demo video
+assets/                    # screenshots + demo
 fixtures/event-loop-demo.js
 ```
 
