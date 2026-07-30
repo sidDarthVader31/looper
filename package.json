@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "license": "MIT",
   "publisher": "SiddharthBisht31",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sidDarthVader31/looper.git"
+  },
   "icon": "assets/icon.png",
   "author": {
     "name": "Siddharth Bisht",
