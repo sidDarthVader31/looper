@@ -5,6 +5,7 @@ import { VizEvent } from '../shared/types';
 export class AgentServer extends EventEmitter {
   private server: net.Server;
   private _port = 0;
+  private sockets = new Set<net.Socket>();
 
   constructor() {
     super();
@@ -27,10 +28,20 @@ export class AgentServer extends EventEmitter {
   }
 
   stop(): void {
+    for (const socket of this.sockets) {
+      try {
+        socket.destroy();
+      } catch {
+        // ignore
+      }
+    }
+    this.sockets.clear();
     this.server.close();
+    this.removeAllListeners();
   }
 
   private handleConnection(socket: net.Socket): void {
+    this.sockets.add(socket);
     let buffer = '';
     socket.on('data', (chunk) => {
       buffer += chunk.toString('utf8');
@@ -47,8 +58,10 @@ export class AgentServer extends EventEmitter {
         }
       }
     });
-    socket.on('error', () => {
-      // agent disconnected unexpectedly -- ignore, next connection will resume the stream
-    });
+    const cleanup = () => {
+      this.sockets.delete(socket);
+    };
+    socket.on('error', cleanup);
+    socket.on('close', cleanup);
   }
 }

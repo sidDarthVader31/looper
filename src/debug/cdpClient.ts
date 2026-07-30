@@ -13,6 +13,17 @@ export interface CdpStackFrame {
   column: number;
 }
 
+interface ProfileNode {
+  id: number;
+  parent?: number;
+  callFrame?: {
+    functionName?: string;
+    url?: string;
+    lineNumber?: number;
+    columnNumber?: number;
+  };
+}
+
 export class CdpClient {
   private ws: WebSocket;
   private nextId = 1;
@@ -68,37 +79,61 @@ export class CdpClient {
   async enableProfiling(): Promise<void> {
     await this.send('Profiler.enable');
     await this.send('Runtime.enable');
-    await this.send('Debugger.enable');
-    await this.send('Profiler.setSamplingInterval', { interval: 200 }); // microseconds
+    // 10ms sampling interval (was 200µs) — still plenty for a live stack view,
+    // without generating multi‑MB profiles every rotation window.
+    await this.send('Profiler.setSamplingInterval', { interval: 10000 });
   }
 
   async startSamplingWindow(): Promise<void> {
     await this.send('Profiler.start');
   }
 
+  /** Reads performance.now() inside the target process (same clock as async_hooks agent). */
+  async getTargetPerformanceNow(): Promise<number> {
+    const result = await this.send<{ result: { value?: number } }>('Runtime.evaluate', {
+      expression: 'performance.now()',
+      returnByValue: true,
+    });
+    return result.result?.value ?? 0;
+  }
+
   /**
-   * Stops the current sampling window, extracts the leaf call frame for every
-   * sample V8 took, and immediately opens a new window so no time is lost
-   * between windows. Call this on a timer (e.g. every 300ms) for a "live"
-   * call-stack feed.
+   * Stops the current sampling window, walks the parent chain of the most
+   * recent sample to rebuild a true call stack (root → leaf), and immediately
+   * opens a new window so no time is lost between windows.
    */
   async rotateSamplingWindow(): Promise<CdpStackFrame[]> {
     const result = await this.send<{ profile: any }>('Profiler.stop');
     await this.send('Profiler.start');
     const profile = result.profile;
-    const nodesById = new Map<number, any>();
-    for (const node of profile.nodes) nodesById.set(node.id, node);
-    const frames: CdpStackFrame[] = (profile.samples || []).map((nodeId: number) => {
-      const node = nodesById.get(nodeId);
-      const cf = node?.callFrame;
-      return {
-        functionName: cf?.functionName || '(anonymous)',
-        url: cf?.url || '',
-        line: (cf?.lineNumber ?? -1) + 1,
-        column: (cf?.columnNumber ?? -1) + 1,
-      };
-    });
-    return frames;
+    const samples: number[] = profile.samples || [];
+    if (!samples.length) return [];
+
+    const nodesById = new Map<number, ProfileNode>();
+    for (const node of profile.nodes as ProfileNode[]) nodesById.set(node.id, node);
+
+    const leafId = samples[samples.length - 1];
+    const chain: CdpStackFrame[] = [];
+    let current: ProfileNode | undefined = nodesById.get(leafId);
+    while (current) {
+      const cf = current.callFrame;
+      const url = cf?.url || '';
+      const functionName = cf?.functionName || '(anonymous)';
+      // Skip idle / root / native frames that have no useful location
+      if (functionName !== '(root)' && functionName !== '(idle)' && functionName !== '(program)') {
+        chain.push({
+          functionName,
+          url,
+          line: (cf?.lineNumber ?? -1) + 1,
+          column: (cf?.columnNumber ?? -1) + 1,
+        });
+      }
+      current = current.parent != null ? nodesById.get(current.parent) : undefined;
+    }
+
+    // V8 walks leaf → root; reverse so the UI shows root at top / leaf at bottom
+    chain.reverse();
+    return chain;
   }
 
   /** Used for "attach to running process": eval's the agent's own source inside the live process. */

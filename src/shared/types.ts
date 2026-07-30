@@ -20,6 +20,9 @@ export interface StackFrame {
   url: string;
   line: number;
   column: number;
+  /** True when frame was synthesized from an async before/after (not CDP). */
+  synthetic?: boolean;
+  asyncId?: number;
 }
 
 export interface StackSampleEvent {
@@ -31,13 +34,17 @@ export interface StackSampleEvent {
 
 export type VizEvent = AsyncLifecycleEvent | StackSampleEvent;
 
+export type PlaybackMode = 'live' | 'paused' | 'playing';
+
 export type WebviewToExtensionMessage =
-  | { command: 'play' }
-  | { command: 'pause' }
-  | { command: 'seek'; ts: number }
-  | { command: 'liveMode' };
+  | { command: 'ready' }
+  | { command: 'liveMode' }
+  | { command: 'stop' }
+  | { command: 'clear' };
 
 export type ExtensionToWebviewMessage =
   | { command: 'event'; event: VizEvent }
   | { command: 'reset' }
-  | { command: 'replayRange'; from: number; to: number };
+  | { command: 'sessionStart' }
+  | { command: 'sessionStopped' }
+  | { command: 'cleared' };

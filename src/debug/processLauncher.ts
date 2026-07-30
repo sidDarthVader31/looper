@@ -45,22 +45,81 @@ function pollForInspector(port: number, timeoutMs = 8000): Promise<void> {
   });
 }
 
+/**
+ * Split a shell-like command into argv, respecting single/double quotes.
+ * Example: `node "my app.js" --flag` → ['node', 'my app.js', '--flag']
+ */
+export function parseCommandLine(command: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let quote: '"' | "'" | null = null;
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    if (quote) {
+      if (ch === quote) {
+        quote = null;
+      } else {
+        current += ch;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      continue;
+    }
+    if (/\s/.test(ch)) {
+      if (current) {
+        result.push(current);
+        current = '';
+      }
+      continue;
+    }
+    current += ch;
+  }
+  if (current) result.push(current);
+  return result;
+}
+
 export async function launchAndInstrument(options: LaunchOptions): Promise<LaunchResult> {
-  const [cmd, ...args] = options.command.split(' ');
+  const argv = parseCommandLine(options.command);
+  if (!argv.length) {
+    throw new Error('Launch command is empty.');
+  }
+  let [cmd, ...args] = argv;
   const inspectPort = await findFreePort();
+
+  const existingNodeOptions = process.env.NODE_OPTIONS ?? '';
+  const agentRequire = `--require ${options.agentPath}`;
+  const inspectFlag = `--inspect=${inspectPort}`;
+
+  // npm/npx apply NODE_OPTIONS to the npm CLI itself, which fights over the
+  // inspect port with the script. Prefer --node-options so only the app gets them.
+  const basename = cmd.replace(/\.cmd$/i, '').toLowerCase();
+  const isNpmLike = basename === 'npm' || basename === 'npx';
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    EVENTLOOP_VIZ_PORT: String(options.vizPort),
+  };
+
+  if (isNpmLike) {
+    const nodeOpts = [agentRequire, inspectFlag].join(' ');
+    args = [...args, `--node-options=${nodeOpts}`];
+  } else {
+    env.NODE_OPTIONS = [agentRequire, inspectFlag, existingNodeOptions].filter(Boolean).join(' ');
+  }
 
   const child = cp.spawn(cmd, args, {
     cwd: options.cwd,
-    env: {
-      ...process.env,
-      NODE_OPTIONS: `--require ${options.agentPath} --inspect=${inspectPort}`,
-      EVENTLOOP_VIZ_PORT: String(options.vizPort),
-    },
+    env,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
   child.stdout?.on('data', (d) => console.log(`[target] ${d}`));
   child.stderr?.on('data', (d) => console.log(`[target] ${d}`));
+
+  child.on('error', (err) => {
+    console.error(`[target] failed to start: ${err.message}`);
+  });
 
   await pollForInspector(inspectPort);
   const wsUrl = await CdpClient.fetchWebSocketUrl(inspectPort);

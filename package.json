@@ -16,6 +16,10 @@
       {
         "command": "eventLoopViz.attach",
         "title": "Event Loop Visualizer: Attach to Running Process"
+      },
+      {
+        "command": "eventLoopViz.stop",
+        "title": "Event Loop Visualizer: Stop Session"
       }
     ]
   },
