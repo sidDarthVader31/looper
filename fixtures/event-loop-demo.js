@@ -1,6 +1,6 @@
 /**
- * Minimal fixture for Event Loop Visualizer demos.
- * Run via: Event Loop Visualizer: Launch & Visualize → `node fixtures/event-loop-demo.js`
+ * Minimal fixture for Looper demos.
+ * Run via: Looper: Launch & Visualize → `node fixtures/event-loop-demo.js`
  */
 'use strict';
 

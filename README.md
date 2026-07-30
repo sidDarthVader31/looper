@@ -25,7 +25,7 @@ Press `F5` in VS Code (Extension Development Host) to load the extension.
 
 ## Usage
 
-1. `Cmd/Ctrl+Shift+P` → **Event Loop Visualizer: Launch & Visualize**
+1. `Cmd/Ctrl+Shift+P` → **Looper: Launch & Visualize**
 2. Pick a launch command (active file, `sample-app`, demo fixture, or custom)
 3. Exercise your app (e.g. `curl http://localhost:3000/login`)
 4. Use the panel:

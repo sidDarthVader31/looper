@@ -13,8 +13,8 @@ export class EventLoopPanel {
       return EventLoopPanel.current;
     }
     const panel = vscode.window.createWebviewPanel(
-      'eventLoopVisualizer',
-      'Event Loop Visualizer',
+      'looper',
+      'Looper',
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
@@ -70,7 +70,7 @@ export class EventLoopPanel {
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
   <link href="${styleUri}" rel="stylesheet" />
-  <title>Event Loop Visualizer</title>
+  <title>Looper</title>
 </head>
 <body>
   <header id="toolbar" role="toolbar" aria-label="Playback controls">
@@ -107,7 +107,7 @@ export class EventLoopPanel {
   </header>
 
   <div id="empty" class="empty-state">
-    <p class="empty-title">Event Loop Visualizer</p>
+    <p class="empty-title">Looper</p>
     <p class="empty-hint">Use <strong>Launch &amp; Visualize</strong> or <strong>Attach to Running Process</strong> to start a session.</p>
   </div>
 

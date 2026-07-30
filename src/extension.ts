@@ -10,7 +10,7 @@ import { launchAndInstrument, attachAndInstrument } from './debug/processLaunche
 import { CdpClient } from './debug/cdpClient';
 import { VizEvent } from './shared/types';
 
-const LAST_COMMAND_KEY = 'eventLoopViz.lastLaunchCommand';
+const LAST_COMMAND_KEY = 'looper.lastLaunchCommand';
 
 let agentServer: AgentServer | undefined;
 let store: EventStore | undefined;
@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const agentPath = path.join(context.extensionPath, 'dist', 'agent', 'instrument.js');
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('eventLoopViz.launch', async () => {
+    vscode.commands.registerCommand('looper.launch', async () => {
       const command = await pickLaunchCommand(context);
       if (!command) return;
       const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? process.cwd();
@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }),
 
-    vscode.commands.registerCommand('eventLoopViz.attach', async () => {
+    vscode.commands.registerCommand('looper.attach', async () => {
       const portStr = await vscode.window.showInputBox({
         prompt: 'Inspector port of the already-running Node.js process',
         value: '9229',
@@ -130,7 +130,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }),
 
-    vscode.commands.registerCommand('eventLoopViz.stop', async () => {
+    vscode.commands.registerCommand('looper.stop', async () => {
       await stopSession('Stopped');
     })
   );
@@ -166,7 +166,7 @@ async function stopSession(reason?: string): Promise<void> {
 
   activePanel?.postSessionStopped();
   if (reason) {
-    vscode.window.showInformationMessage(`Event Loop Visualizer: ${reason}. Replay is still available.`);
+    vscode.window.showInformationMessage(`Looper: ${reason}. Replay is still available.`);
   }
 }
 
@@ -257,7 +257,7 @@ async function pickLaunchCommand(context: vscode.ExtensionContext): Promise<stri
       command: s.command,
     })),
     {
-      title: 'Event Loop Visualizer: Launch',
+      title: 'Looper: Launch',
       placeHolder: 'Choose what to run (or enter a custom node command)',
     }
   );
