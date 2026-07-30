@@ -4,13 +4,13 @@ A VS Code extension that visualizes the Node.js **call stack**, **microtask queu
 and **macrotask queue** live — using your real function names — without modifying,
 wrapping, or adding any dependency to your app.
 
-![Call stack, microtask, and macrotask lanes during a live sample-app run](assets/screenshot-timeline.png)
-
 ![Panel layout with Live / Stop / Clear and playback controls](assets/screenshot-queues.png)
+
+![Call stack, microtask, and macrotask lanes during a live sample-app run](assets/screenshot-timeline.png)
 
 ### Working demo
 
-[Watch the demo video](assets/demo.mov)
+![Working demo](assets/demo.gif)
 
 ---
 
